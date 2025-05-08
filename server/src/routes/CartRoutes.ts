@@ -23,57 +23,66 @@ router.get('/', protectedRoute, async (req: Request, res: Response) => {
 })
 
 // POST /cart → Sepete ürün ekle
-router.post('/', protectedRoute, async (req: Request, res: Response) => {
-  const userId = req.userId
-  const { productId, quantity } = req.body
-
-  if (!productId || quantity < 1) {
-    return res.status(400).json({ error: 'Geçersiz veri' })
-  }
-
-  try {
-    // Varsa artır, yoksa oluştur
-    const existingItem = await prisma.cartItem.findFirst({
-      where: { userId, productId }
-    })
-
-    if (existingItem) {
-      const updated = await prisma.cartItem.update({
-        where: { id: existingItem.id },
-        data: { quantity: existingItem.quantity + quantity }
-      })
-      return res.json(updated)
+router.post("/", protectedRoute, async (req: Request, res: Response) => {
+    const userId = req.userId;
+    const { productId, quantity } = req.body;
+  
+    if (!productId || !quantity) {
+      return res.status(400).json({ error: "Eksik veri" });
     }
-
-    const created = await prisma.cartItem.create({
-      data: {
-        userId,
-        productId,
-        quantity
+  
+    try {
+      const existing = await prisma.cartItem.findFirst({
+        where: { userId, productId },
+      });
+  
+      // Eğer varsa güncelle
+      if (existing) {
+        const newQty = existing.quantity + quantity;
+  
+        if (newQty <= 0) {
+          await prisma.cartItem.delete({ where: { id: existing.id } });
+          return res.json({ message: "Silindi" });
+        }
+  
+        const updated = await prisma.cartItem.update({
+          where: { id: existing.id },
+          data: { quantity: newQty },
+        });
+  
+        return res.json(updated);
       }
-    })
-
-    res.status(201).json(created)
-  } catch (error) {
-    console.error(error)
-    res.status(500).json({ error: 'Sepete eklenemedi' })
-  }
-})
-
+  
+      // Yoksa yeni oluştur
+      const created = await prisma.cartItem.create({
+        data: {
+          userId,
+          productId,
+          quantity,
+        },
+      });
+  
+      res.status(201).json(created);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Sunucu hatası" });
+    }
+  });
+  
 // DELETE /cart/:id → Sepetten ürünü çıkar
 router.delete('/:id', protectedRoute, async (req: Request, res: Response) => {
-  const cartItemId = parseInt(req.params.id)
-
-  try {
-    await prisma.cartItem.delete({
-      where: { id: cartItemId }
-    })
-
-    res.json({ message: 'Ürün sepetten silindi' })
-  } catch (error) {
-    console.error(error)
-    res.status(500).json({ error: 'Silme işlemi başarısız' })
-  }
-})
-
+    const cartItemId = Number(req.params.id);
+  
+    try {
+      const deleted = await prisma.cartItem.delete({
+        where: { id: cartItemId },
+      });
+  
+      res.json({ message: 'Silindi', deleted });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Silinemedi' });
+    }
+  });
+  
 export default router

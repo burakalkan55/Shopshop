@@ -7,6 +7,7 @@ import {
   Button,
   Divider,
   Stack,
+  Snackbar,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -16,6 +17,7 @@ interface CartItem {
   id: number;
   quantity: number;
   product: {
+    id: number;
     title: string;
     price: number;
     image: string;
@@ -24,30 +26,73 @@ interface CartItem {
 
 const Cart: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
-
+  const [message, setMessage] = useState<string>("");
   const token = localStorage.getItem("token");
+
+  // Scroll sabitlenmesini etkinleştir
+  useEffect(() => {
+    fetchCart();
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+  }, []);
 
   const fetchCart = async () => {
     try {
       const response = await axios.get("http://localhost:3000/cart", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setCartItems(response.data);
     } catch (err) {
-      console.error(err);
-      setError("Sepet alınamadı.");
-    } finally {
-      setLoading(false);
+      setMessage("Sepet alınamadı.");
     }
   };
 
-  useEffect(() => {
-    fetchCart();
-  }, []);
+  const updateCart = async (productId: number, amount: number) => {
+    const currentScroll = window.scrollY;
+
+    try {
+      await axios.post(
+        "http://localhost:3000/cart",
+        { productId, quantity: amount },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      fetchCart();
+
+      // Sayfa zıplamasını engelle
+      setTimeout(() => {
+        window.scrollTo({ top: currentScroll, behavior: "auto" });
+      }, 10);
+    } catch {
+      setMessage("Sepet güncellenemedi.");
+    }
+  };
+
+  const deleteCartItem = async (cartItemId: number) => {
+    try {
+      await axios.delete(`http://localhost:3000/cart/${cartItemId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchCart();
+    } catch {
+      setMessage("Ürün silinemedi.");
+    }
+  };
+
+  const handleCheckout = async () => {
+    try {
+      await axios.post(
+        "http://localhost:3000/orders",
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setMessage("🛍 Sipariş başarıyla oluşturuldu!");
+      fetchCart();
+    } catch {
+      setMessage("Sipariş oluşturulamadı.");
+    }
+  };
 
   const total = cartItems.reduce(
     (sum, item) => sum + item.quantity * item.product.price,
@@ -60,9 +105,7 @@ const Cart: React.FC = () => {
         🛒 Sepetim
       </Typography>
       <Divider sx={{ mb: 3 }} />
-      {loading ? (
-        <Typography>Yükleniyor...</Typography>
-      ) : cartItems.length === 0 ? (
+      {cartItems.length === 0 ? (
         <Typography>Sepetiniz boş.</Typography>
       ) : (
         <>
@@ -82,23 +125,36 @@ const Cart: React.FC = () => {
                   alt={item.product.title}
                   style={{ width: 60, height: 60, objectFit: "contain" }}
                 />
-                <Box>
-                  <Typography variant="subtitle1">
+                <Box sx={{ minHeight: 60, overflow: "hidden" }}>
+                  <Typography variant="subtitle1" fontWeight={600}>
                     {item.product.title}
                   </Typography>
                   <Typography variant="body2">
-                    ${item.product.price} x {item.quantity}
+                    ${item.product.price.toFixed(2)} x {item.quantity}
                   </Typography>
                 </Box>
               </Stack>
-              <Stack direction="row" spacing={1}>
-                <IconButton>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{ minWidth: 100, justifyContent: "flex-end" }}
+              >
+                <IconButton
+                  type="button"
+                  onClick={() => updateCart(item.product.id, 1)}
+                >
                   <AddIcon />
                 </IconButton>
-                <IconButton>
+                <IconButton
+                  type="button"
+                  onClick={() => updateCart(item.product.id, -1)}
+                >
                   <RemoveIcon />
                 </IconButton>
-                <IconButton>
+                <IconButton
+                  type="button"
+                  onClick={() => deleteCartItem(item.id)}
+                >
                   <DeleteIcon />
                 </IconButton>
               </Stack>
@@ -107,11 +163,24 @@ const Cart: React.FC = () => {
 
           <Divider sx={{ my: 3 }} />
           <Typography variant="h6">Toplam: ${total.toFixed(2)}</Typography>
-          <Button variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
-            ✅ Satın Al
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ mt: 2 }}
+            onClick={handleCheckout}
+          >
+            ✅ Siparişi Tamamla
           </Button>
         </>
       )}
+
+      <Snackbar
+        open={!!message}
+        autoHideDuration={3000}
+        onClose={() => setMessage("")}
+        message={message}
+      />
     </Box>
   );
 };
