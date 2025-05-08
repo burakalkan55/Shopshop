@@ -182,6 +182,42 @@ app.post('/auth/logout', async (req: Request, res: Response) => {
   }
 })
 
+
+// GET /products → Tüm ürünleri getir
+app.get('/products', async (req: Request, res: Response) => {
+  try {
+    const products = await prisma.product.findMany()
+    res.json(products)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Ürünler alınamadı' })
+  }
+})
+
+// POST /orders → Sipariş oluştur (Token ile korumalı)
+app.post('/orders', protectedRoute, async (req: Request, res: Response) => {
+  const { productId } = req.body
+
+  if (!productId) {
+    return res.status(400).json({ error: 'Ürün ID zorunlu' })
+  }
+
+  try {
+    const order = await prisma.order.create({
+      data: {
+        productId: Number(productId),
+        userId: req.userId
+      }
+    })
+
+    res.status(201).json({ message: 'Sipariş oluşturuldu', order })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Sipariş oluşturulamadı' })
+  }
+})
+
+
 // Server'ı başlat
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {

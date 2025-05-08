@@ -24,3 +24,26 @@ model Session {
   status    String   // "online" veya "offline"
   user      User     @relation(fields: [userId], references: [id])
 }
+
+
+
+model Product {
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String
+  price       Float
+  image       String
+  createdAt   DateTime @default(now())
+
+  orders      Order[]
+}
+
+model Order {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  userId    Int
+  createdAt DateTime @default(now())
+
+  product   Product @relation(fields: [productId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+}
