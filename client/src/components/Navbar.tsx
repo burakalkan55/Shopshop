@@ -91,6 +91,9 @@ const Navbar = () => {
       <Button sx={navbarStyles.button} color="primary" component={Link} to="/products">
         Ürünler
       </Button>
+      <Button sx={navbarStyles.button} color="primary" component={Link} to="/cart">
+        Sepet
+      </Button>
       
       <Button
         sx={{
@@ -142,6 +145,10 @@ const Navbar = () => {
       </ListItem>
       <ListItem button component={Link} to="/products" onClick={() => toggleDrawer(false)} sx={navbarStyles.drawerItem}>
         Products
+      </ListItem>
+
+      <ListItem button component={Link} to="/cart" onClick={() => toggleDrawer(false)} sx={navbarStyles.drawerItem}>
+        Cart
       </ListItem>
       <ListItem button onClick={() => { handleLogout(); toggleDrawer(false); }} sx={navbarStyles.drawerItem}>
         Çıkış Yap
