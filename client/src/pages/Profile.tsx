@@ -35,26 +35,29 @@ const Profile = () => {
     return <Typography variant="h6" align="center">Giriş yapmalısınız!</Typography>
   }
 
-  const handleLogout = () => {
+
+  const handleLogout = async () => {
     const token = localStorage.getItem('token')
-
-    api.post('/auth/logout', null, {
-      headers: {
-        Authorization: `Bearer ${token}`
+    
+    try {
+      // Try to logout from server first
+      if (token) {
+        await api.post('/auth/logout', {}, { // Added empty object as body
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        })
       }
-    })
-    .then(() => {
-      // Başarılı çıkış sonrası token'ı silip login sayfasına yönlendiriyoruz
-      localStorage.removeItem('token')
-      navigate('/login')
-    })
-    .catch((error) => {
+    } catch (error) {
       console.error('Logout error:', error)
+    } finally {
+      // Always clear local state regardless of server response
       localStorage.removeItem('token')
+      setUser(null)
       navigate('/login')
-    })
+    }
   }
-
   return (
     <Box sx={{ padding: 4 }}>
       <Typography variant="h4" sx={{ fontSize: { xs: '1.8rem', sm: '2rem', md: '2.5rem' } }}>

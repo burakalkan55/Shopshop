@@ -155,7 +155,8 @@ app.get('/users/me', protectedRoute, async (req: Request, res: Response) => {
 })
 
 // POST /auth/logout → Kullanıcı çıkış yaparsa session'ı güncelle
-app.post('/auth/logout', protectedRoute, async (req: Request, res: Response) => {
+// POST /auth/logout → Kullanıcı çıkış yaparsa session'ı güncelle
+app.post('/auth/logout', async (req: Request, res: Response) => {
   const token = req.headers.authorization?.split(' ')[1]
 
   if (!token) {
