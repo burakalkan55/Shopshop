@@ -15,7 +15,7 @@ const Footer: React.FC = () => {
     >
       <Container maxWidth="md">
         <Typography variant="body2" color="text.secondary">
-          © {new Date().getFullYear()} ShopShop. All rights reserved.
+          © {new Date().getFullYear()} ShopShop. All rights reserved. İt's a fake website btw
         </Typography>
       </Container>
     </Box>
