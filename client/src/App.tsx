@@ -6,6 +6,8 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Products from './pages/Products'
 import Cart from './pages/Cart'
+import Orders from './pages/Orders'
+import UserManagement from './pages/UserManagament'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -18,6 +20,9 @@ function App() {
        <Route path="/register" element={<Register />} />
         <Route path="/products" element={<Products />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path ="/orders" element={<Orders />} />
+        <Route path="/usermanagement" element={<UserManagement />} />
+        {/* Diğer sayfalar burada olacak */}
         {/* ProtectedRoute ile korunan sayfalar */}
         <Route 
           path="/profile" 

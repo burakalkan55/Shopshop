@@ -11,7 +11,9 @@ import {
     Box,
 } from "@mui/material";
 import axios from "axios";
-import { useShopStore } from "../store/shopStore"; // en üste ekle
+import { useShopStore } from "../store/shopStore"; 
+import Loading from "../components/Loading";
+
 
 
 interface Product {
@@ -83,9 +85,10 @@ const Products: React.FC = () => {
             setMessage("Sepete eklenemedi.");
         }
     };
-
+    if (loading) return <Loading message="Fetching products..." />;
 
     return (
+    
         <Box sx={{ padding: 4 }}>
             <Grid
                 container

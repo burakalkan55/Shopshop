@@ -1,32 +1,51 @@
-import { AppBar, Toolbar, Typography, Button, IconButton, Drawer, List, ListItem, Box, Grid } from '@mui/material'
-import { Link, useNavigate } from 'react-router-dom'
+import React from "react";
+import { Box, Typography, Button, Container, Stack } from "@mui/material";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import { Link } from "react-router-dom";
 
-const Home = () => {
-  const navigate = useNavigate()
-
-  const handleStart = () => {
-    navigate("/profile")
-  }
-
+const Home: React.FC = () => {
   return (
-    <Box sx={{ padding: 4 }}>
-      <Grid container spacing={4} alignItems="center" justifyContent="center">
-        <Grid item xs={12} sm={6} md={4}>
-          <Typography variant="h4" sx={{ fontSize: { xs: '2rem', sm: '3rem' } }}>Hoş Geldiniz!</Typography>
-          <Typography variant="body1" sx={{ fontSize: { xs: '1rem', sm: '1.2rem' } }}>
-            Alışveriş yapmaya başlayın.
-          </Typography>
-          <Button 
-            variant="contained" 
-            sx={{ marginTop: 2 }}
-            onClick={handleStart}
-          >
-            Başla
-          </Button>
-        </Grid>
-      </Grid>
-    </Box>
-  )
-}
+    <Box
+      sx={{
+        background: "linear-gradient(to bottom right, #f0f4ff, #ffffff)",
+        minHeight: "100vh",
+        py: 10,
+      }}
+    >
+      <Container maxWidth="md" sx={{ textAlign: "center" }}>
+        <StorefrontIcon sx={{ fontSize: 60, color: "#1976d2", mb: 2 }} />
+        <Typography variant="h3" gutterBottom fontWeight="bold">
+          Welcome to ShopShop!
+        </Typography>
+        <Typography variant="h6" color="text.secondary" mb={4}>
+          Discover your favorite products and start shopping effortlessly.
+        </Typography>
 
-export default Home
+        <Stack spacing={2} direction={{ xs: "column", sm: "row" }} justifyContent="center">
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            startIcon={<ShoppingCartIcon />}
+            component={Link}
+            to="/products"
+          >
+            Start Shopping
+          </Button>
+          <Button
+            variant="outlined"
+            color="primary"
+            size="large"
+            component={Link}
+            to="/profile"
+          >
+            Go to Profile
+          </Button>
+        </Stack>
+      </Container>
+    </Box>
+  );
+};
+
+export default Home;

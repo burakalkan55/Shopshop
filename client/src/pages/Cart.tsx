@@ -29,7 +29,6 @@ const Cart: React.FC = () => {
   const [message, setMessage] = useState<string>("");
   const token = localStorage.getItem("token");
 
-  // Scroll sabitliği ve cart'ı çekme
   useEffect(() => {
     fetchCart();
     if ("scrollRestoration" in window.history) {
@@ -43,8 +42,8 @@ const Cart: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCartItems(response.data);
-    } catch {
-      setMessage("Sepet alınamadı.");
+    } catch (err) {
+      setMessage("Failed to fetch cart items.");
     }
   };
 
@@ -61,7 +60,7 @@ const Cart: React.FC = () => {
         window.scrollTo({ top: scrollY });
       }, 10);
     } catch {
-      setMessage("Sepet güncellenemedi.");
+      setMessage("Failed to update cart.");
     }
   };
 
@@ -72,7 +71,7 @@ const Cart: React.FC = () => {
       });
       fetchCart();
     } catch {
-      setMessage("Ürün silinemedi.");
+      setMessage("Failed to remove item.");
     }
   };
 
@@ -83,10 +82,10 @@ const Cart: React.FC = () => {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setMessage("🛍 Sipariş başarıyla oluşturuldu!");
+      setMessage("🛍 Order placed successfully!");
       fetchCart();
     } catch {
-      setMessage("Sipariş oluşturulamadı.");
+      setMessage("Failed to place order.");
     }
   };
 
@@ -100,11 +99,12 @@ const Cart: React.FC = () => {
   return (
     <Box sx={{ p: 4, maxWidth: 800, mx: "auto" }}>
       <Typography variant="h4" gutterBottom>
-        🛒 Sepetim
+        🛒 My Cart
       </Typography>
       <Divider sx={{ mb: 3 }} />
+
       {sortedItems.length === 0 ? (
-        <Typography>Sepetiniz boş.</Typography>
+        <Typography>Your cart is empty.</Typography>
       ) : (
         <>
           {sortedItems.map((item) => (
@@ -137,22 +137,13 @@ const Cart: React.FC = () => {
                 spacing={1}
                 sx={{ minWidth: 100, justifyContent: "flex-end" }}
               >
-                <IconButton
-                  type="button"
-                  onClick={() => updateCart(item.product.id, 1)}
-                >
+                <IconButton onClick={() => updateCart(item.product.id, 1)}>
                   <AddIcon />
                 </IconButton>
-                <IconButton
-                  type="button"
-                  onClick={() => updateCart(item.product.id, -1)}
-                >
+                <IconButton onClick={() => updateCart(item.product.id, -1)}>
                   <RemoveIcon />
                 </IconButton>
-                <IconButton
-                  type="button"
-                  onClick={() => deleteCartItem(item.id)}
-                >
+                <IconButton onClick={() => deleteCartItem(item.id)}>
                   <DeleteIcon />
                 </IconButton>
               </Stack>
@@ -160,7 +151,7 @@ const Cart: React.FC = () => {
           ))}
 
           <Divider sx={{ my: 3 }} />
-          <Typography variant="h6">Toplam: ${total.toFixed(2)}</Typography>
+          <Typography variant="h6">Total: ${total.toFixed(2)}</Typography>
           <Button
             variant="contained"
             color="primary"
@@ -168,7 +159,7 @@ const Cart: React.FC = () => {
             sx={{ mt: 2 }}
             onClick={handleCheckout}
           >
-            ✅ Siparişi Tamamla
+            ✅ Complete Order
           </Button>
         </>
       )}
