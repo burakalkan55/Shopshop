@@ -1,31 +1,57 @@
 import { useState } from 'react';
-import { TextField, Button, Box, Typography } from '@mui/material';
+import {
+  TextField,
+  Button,
+  Box,
+  Typography,
+  Snackbar,
+  Alert,
+} from '@mui/material';
 import { useNavigate, Link } from 'react-router-dom';
+import axios from 'axios';
 import api from '../api/api';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [openSnackbar, setOpenSnackbar] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
       const response = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', response.data.token);
-      console.log('Login successful:', response.data);
-      navigate('/');
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed');
+      setOpenSnackbar(true);
+      setError('');
+
+      setTimeout(() => {
+        setOpenSnackbar(false);
+        navigate('/');
+      }, 1500);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.error || 'Login failed');
+      } else {
+        setError('An unexpected error occurred');
+      }
     }
   };
 
   return (
-    <Box sx={{ maxWidth: 400, margin: '0 auto', padding: 2 }}>
-      <Typography variant="h5">Login</Typography>
-      {error && <Typography color="error">{error}</Typography>}
+    <Box sx={{ maxWidth: 400, mx: 'auto', p: 3 }}>
+      <Typography variant="h5" gutterBottom>
+        Login
+      </Typography>
+
+      {error && (
+        <Typography color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+      )}
+
       <form onSubmit={handleSubmit}>
         <TextField
           label="Email"
@@ -43,14 +69,35 @@ const Login = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <Button type="submit" variant="contained" fullWidth>
+
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          fullWidth
+          sx={{ mt: 2 }}
+        >
           Login
         </Button>
-
-        <Typography variant="body2" align="center" sx={{ marginTop: 2 }}>
-          Don’t have an account? <Link to="/register">Register</Link>
-        </Typography>
       </form>
+
+      <Typography variant="body2" align="center" sx={{ mt: 2 }}>
+        Don’t have an account? <Link to="/register">Register</Link>
+      </Typography>
+
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackbar(false)}
+      >
+        <Alert
+          onClose={() => setOpenSnackbar(false)}
+          severity="success"
+          sx={{ width: '100%' }}
+        >
+          Login successful!
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

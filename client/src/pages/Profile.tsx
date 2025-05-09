@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react';
+
 import {
-  Box, Grid, Paper, Typography, Avatar, Button,
-  Stack, Divider, useTheme
+  Grid,
+  Box,
+  Paper,
+  Typography,
+  Avatar,
+  Button,
+  Stack,
+  Divider
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
@@ -10,23 +17,33 @@ import PersonIcon from '@mui/icons-material/Person';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/api';
 
+interface User {
+  name: string;
+  email: string;
+  image?: string;
+}
+
 const Profile = () => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
-  const theme = useTheme();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return navigate('/login');
+    const fetchUser = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return navigate('/login');
 
-    api.get('/users/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => setUser(res.data))
-      .catch(() => {
+      try {
+        const res = await api.get('/users/me', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUser(res.data);
+      } catch {
         localStorage.removeItem('token');
         navigate('/login');
-      });
+      }
+    };
+
+    fetchUser();
   }, [navigate]);
 
   const handleLogout = async () => {
@@ -64,8 +81,9 @@ const Profile = () => {
         }}
       >
         <Grid container spacing={4}>
-          {/* Left Side – Avatar & Info */}
-          <Grid item xs={12} md={4}>
+          {/* Left: Avatar & Info */}
+          <Grid sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
+
             <Stack alignItems="center" spacing={2}>
               <Avatar
                 src={user.image ? `http://localhost:3000${user.image}` : undefined}
@@ -86,8 +104,8 @@ const Profile = () => {
             </Stack>
           </Grid>
 
-          {/* Right Side – Actions */}
-          <Grid item xs={12} md={8}>
+          {/* Right: Buttons */}
+          <Grid sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
             <Stack spacing={2}>
               <Typography variant="h5" fontWeight={700}>
                 Welcome back 👋
@@ -132,7 +150,7 @@ const Profile = () => {
 
               <Button
                 variant="contained"
-                color="secondary"
+                color="error"
                 startIcon={<LogoutIcon />}
                 onClick={handleLogout}
                 fullWidth
@@ -141,11 +159,6 @@ const Profile = () => {
                   borderRadius: 2,
                   py: 1.5,
                   fontWeight: 600,
-                  backgroundColor: theme.palette.error.main,
-                  color: '#fff',
-                  '&:hover': {
-                    backgroundColor: theme.palette.error.dark,
-                  }
                 }}
               >
                 Log Out

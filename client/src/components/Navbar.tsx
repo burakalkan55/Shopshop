@@ -128,7 +128,7 @@ const Navbar = () => {
             </ListItem>
           ))}
           {isAuthenticated && (
-            <ListItem button onClick={() => { logout(); setOpenDrawer(false); }}>
+            <ListItem component="li" onClick={() => { logout(); setOpenDrawer(false); }}>
               Logout
             </ListItem>
           )}

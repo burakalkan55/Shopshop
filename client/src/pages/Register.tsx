@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { TextField, Button, Box, Typography, Snackbar, Alert } from '@mui/material';
+import {
+  TextField,
+  Button,
+  Box,
+  Typography,
+  Snackbar,
+  Alert,
+} from '@mui/material';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/api';
 
@@ -7,22 +14,25 @@ const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    'success' | 'error'
+  >('success');
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name || !email || !password) {
-      setError('All fields are required!');
+      setSnackbarMessage('All fields are required!');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
       return;
     }
 
     try {
-      const response = await api.post('/auth/register', { name, email, password });
+      await api.post('/auth/register', { name, email, password });
 
       setSnackbarMessage('Registration successful!');
       setSnackbarSeverity('success');
@@ -40,12 +50,10 @@ const Register = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 400, margin: '0 auto', padding: 2 }}>
-      <Typography variant="h5" sx={{ fontSize: { xs: '1.8rem', sm: '2rem' } }}>
+    <Box sx={{ maxWidth: 400, mx: 'auto', p: 2 }}>
+      <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
         Create Account
       </Typography>
-
-      {error && <Typography color="error" sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}>{error}</Typography>}
 
       <form onSubmit={handleSubmit}>
         <TextField
@@ -72,18 +80,26 @@ const Register = () => {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        <Button type="submit" variant="contained" fullWidth>
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          sx={{ mt: 2, py: 1.3, fontWeight: 600 }}
+        >
           Register
         </Button>
       </form>
 
       <Typography variant="body2" align="center" sx={{ mt: 2 }}>
-        Already have an account? <Link to="/login">Log in</Link>
+        Already have an account?{' '}
+        <Link to="/login" style={{ textDecoration: 'none' }}>
+          Log in
+        </Link>
       </Typography>
 
       <Snackbar
         open={openSnackbar}
-        autoHideDuration={2000}
+        autoHideDuration={3000}
         onClose={() => setOpenSnackbar(false)}
       >
         <Alert

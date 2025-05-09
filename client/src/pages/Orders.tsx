@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import {
   Box,
@@ -25,29 +25,29 @@ interface Order {
   items: OrderItem[];
 }
 
-const Orders: React.FC = () => {
+const Orders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [message, setMessage] = useState<string>("");
+  const [message, setMessage] = useState("");
   const token = localStorage.getItem("token");
 
   useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/orders", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setOrders(response.data);
+      } catch {
+        setMessage("Failed to fetch orders.");
+      }
+    };
+
     fetchOrders();
   }, []);
 
-  const fetchOrders = async () => {
-    try {
-      const response = await axios.get("http://localhost:3000/orders", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setOrders(response.data);
-    } catch {
-      setMessage("Failed to fetch orders.");
-    }
-  };
-
   return (
     <Box sx={{ p: 4, maxWidth: 800, mx: "auto" }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h4" gutterBottom fontWeight={600}>
         🧾 Order History
       </Typography>
       <Divider sx={{ mb: 3 }} />
@@ -56,24 +56,34 @@ const Orders: React.FC = () => {
         <Typography>No orders found.</Typography>
       ) : (
         orders.map((order) => (
-          <Card key={order.id} sx={{ mb: 4, boxShadow: 3 }}>
+          <Card key={order.id} sx={{ mb: 4, boxShadow: 2 }}>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 2 }}>
-                🧾 Order #{order.id} – {new Date(order.createdAt).toLocaleString("en-US")}
+                🧾 Order #{order.id} —{" "}
+                {new Date(order.createdAt).toLocaleString("en-US")}
               </Typography>
 
               {order.items.map((item, idx) => (
-                <Box key={idx} sx={{ display: "flex", mb: 1, alignItems: "center" }}>
+                <Box
+                  key={idx}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    mb: 2,
+                    borderBottom: "1px solid #eee",
+                    pb: 1,
+                  }}
+                >
                   <CardMedia
                     component="img"
-                    image={item.product?.image}
-                    alt={item.product?.title}
+                    image={item.product.image}
+                    alt={item.product.title}
                     sx={{ width: 60, height: 60, objectFit: "contain", mr: 2 }}
                   />
                   <Box>
-                    <Typography>{item.product?.title}</Typography>
+                    <Typography fontWeight={500}>{item.product.title}</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      ${item.product?.price.toFixed(2)} x {item.quantity}
+                      ${item.product.price.toFixed(2)} × {item.quantity}
                     </Typography>
                   </Box>
                 </Box>

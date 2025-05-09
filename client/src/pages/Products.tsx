@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { Grid } from '@mui/material';
+
 import {
-  Grid,
+
   Card,
   CardMedia,
   Typography,
@@ -21,12 +23,12 @@ interface Product {
   thumbnail: string;
 }
 
-const Products: React.FC = () => {
+const Products = () => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [message, setMessage] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const { favorites, toggleFavorite, setFavorites, addToCart } = useShopStore();
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const { favorites, toggleFavorite, setFavorites } = useShopStore();
   const itemsPerPage = 12;
 
   useEffect(() => {
@@ -41,11 +43,11 @@ const Products: React.FC = () => {
         setLoading(false);
       }
     };
-  
+
     const fetchFavorites = async () => {
       const token = localStorage.getItem("token");
       if (!token) return;
-  
+
       try {
         const res = await axios.get("http://localhost:3000/favs", {
           headers: { Authorization: `Bearer ${token}` },
@@ -56,11 +58,10 @@ const Products: React.FC = () => {
         console.error("Failed to fetch favorites:", err);
       }
     };
-  
+
     fetchProducts();
     fetchFavorites();
   }, [setFavorites]);
-  
 
   const paginatedProducts = products.slice(
     (currentPage - 1) * itemsPerPage,
@@ -132,20 +133,10 @@ const Products: React.FC = () => {
         }}
       >
         {paginatedProducts.map((product) => (
-          <Grid
-            item
-            xs={12}
-            sm={6}
-            md={3}
-            key={product.id}
-            sx={{
-              maxWidth: "300px",
-              minWidth: "280px",
-              flex: "0 0 auto",
-              display: "flex",
-              justifyContent: "center",
-            }}
-          >
+          
+          <Grid sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
+  
+
             <Card
               sx={{
                 height: 380,
@@ -219,19 +210,24 @@ const Products: React.FC = () => {
                 <Button
                   variant={favorites.includes(product.id) ? "contained" : "outlined"}
                   color="error"
-                  sx={{ 
-                    minWidth: 40, 
+                  sx={{
+                    minWidth: 40,
                     height: 40,
-                    backgroundColor: favorites.includes(product.id) ? "#f44336" : "transparent",
+                    backgroundColor: favorites.includes(product.id)
+                      ? "#f44336"
+                      : "transparent",
                     color: favorites.includes(product.id) ? "white" : "#f44336",
                     "&:hover": {
-                      backgroundColor: favorites.includes(product.id) ? "#d32f2f" : "rgba(244, 67, 54, 0.04)",
-                    }
+                      backgroundColor: favorites.includes(product.id)
+                        ? "#d32f2f"
+                        : "rgba(244, 67, 54, 0.04)",
+                    },
                   }}
                   onClick={() => handleToggleFavorite(product.id)}
                 >
                   {favorites.includes(product.id) ? "❤️" : "🤍"}
                 </Button>
+
                 <Button
                   variant="contained"
                   sx={{ minWidth: 40, height: 40 }}
@@ -249,7 +245,7 @@ const Products: React.FC = () => {
         <Pagination
           count={Math.ceil(products.length / itemsPerPage)}
           page={currentPage}
-          onChange={(e, page) => setCurrentPage(page)}
+          onChange={(_, page) => setCurrentPage(page)}
           color="primary"
           shape="rounded"
           size="large"

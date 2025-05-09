@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 
 const UserManagement: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
+ 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [image, setImage] = useState<string>("");
@@ -26,19 +26,22 @@ const UserManagement: React.FC = () => {
     fetchUserInfo();
   }, []);
 
-  const fetchUserInfo = async () => {
-    try {
-      const response = await axios.get("http://localhost:3000/users/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUser(response.data);
-      setName(response.data.name);
-      setEmail(response.data.email);
-      setImage(response.data.image || "");
-    } catch (err) {
-      setMessage("Failed to fetch user info.");
-    }
-  };
+  // const [user, setUser] = useState<any>(null); ❌ kaldır
+
+const fetchUserInfo = async () => {
+  try {
+    const response = await axios.get("http://localhost:3000/users/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    // setUser(response.data); // ❌ kaldır
+    setName(response.data.name);
+    setEmail(response.data.email);
+    setImage(response.data.image || "");
+  } catch (err) {
+    setMessage("Failed to fetch user info.");
+  }
+};
+
 
   const updateUserInfo = async () => {
     try {
@@ -82,7 +85,8 @@ const UserManagement: React.FC = () => {
         <Divider sx={{ mb: 3 }} />
         <Stack spacing={2} alignItems="center">
           <Avatar
-            src={image ? `http://localhost:3000${image}` : undefined}
+           src={image?.startsWith("/uploads") ? `${import.meta.env.VITE_API_URL}${image}` : image}
+
             sx={{ width: 100, height: 100, mb: 2 }}
           >
             {!image && <PersonIcon sx={{ fontSize: 60 }} />}

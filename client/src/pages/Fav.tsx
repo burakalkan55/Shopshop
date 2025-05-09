@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { Grid } from '@mui/material';
+import { useShopStore } from "../store/shopStore";
+
+
+
 import {
-  Grid,
+ 
   Card,
   CardMedia,
   Typography,
@@ -9,7 +14,7 @@ import {
   Snackbar,
 } from "@mui/material";
 import axios from "axios";
-import { useShopStore } from "../store/shopStore";
+
 import Loading from "../components/Loading";
 
 interface Product {
@@ -24,7 +29,9 @@ const Fav: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [message, setMessage] = useState<string>("");
-  const { favorites, toggleFavorite, addToCart } = useShopStore();
+  const { toggleFavorite, addToCart } = useShopStore();
+
+  
 
   useEffect(() => {
     const fetchFavoriteProducts = async () => {
@@ -134,23 +141,13 @@ const Fav: React.FC = () => {
       >
         {products.map((product) => (
           <Grid
-            item
-            xs={12}
-            sm={6}
-            md={3}
-            key={product.id}
-            sx={{
-              maxWidth: "300px",
-              minWidth: "280px",
-              flex: "0 0 auto",
-              display: "flex",
-              justifyContent: "center",
-            }}
+            
+            
           >
             <Card
               sx={{
-                height: 380,
-                width: "100%",
+                height: "380px",   // Tırnak işareti eklendi
+                width: "100%",     // Tırnak işareti eklendi
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
