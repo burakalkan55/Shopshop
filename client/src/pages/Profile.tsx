@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Box, Grid, Paper, Typography, Avatar, Button, Stack, Divider } from '@mui/material';
+import {
+  Box, Grid, Paper, Typography, Avatar, Button,
+  Stack, Divider, useTheme
+} from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -10,10 +13,11 @@ import api from '../api/api';
 const Profile = () => {
   const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
+  const theme = useTheme();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) navigate('/login');
+    if (!token) return navigate('/login');
 
     api.get('/users/me', {
       headers: { Authorization: `Bearer ${token}` },
@@ -42,79 +46,88 @@ const Profile = () => {
     }
   };
 
-  if (!user) return <Typography align="center">You must be logged in!</Typography>;
+  if (!user) {
+    return <Typography align="center">You must be logged in!</Typography>;
+  }
 
   return (
-    <Box sx={{ padding: 4 }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
-        <Grid container spacing={4} alignItems="center">
+    <Box sx={{ py: 6, px: 3, background: '#f5f8ff', minHeight: '100vh' }}>
+      <Paper
+        elevation={4}
+        sx={{
+          borderRadius: 4,
+          maxWidth: 900,
+          mx: 'auto',
+          p: { xs: 3, sm: 5 },
+          backgroundColor: '#ffffff',
+          boxShadow: '0px 8px 30px rgba(0,0,0,0.05)',
+        }}
+      >
+        <Grid container spacing={4}>
+          {/* Left Side – Avatar & Info */}
           <Grid item xs={12} md={4}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Stack alignItems="center" spacing={2}>
               <Avatar
                 src={user.image ? `http://localhost:3000${user.image}` : undefined}
-                sx={{ width: 100, height: 100, mb: 2 }}
+                sx={{
+                  width: 120,
+                  height: 120,
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                }}
               >
                 {!user.image && <PersonIcon sx={{ fontSize: 60 }} />}
               </Avatar>
-
-              <Typography variant="h6">{user.name}</Typography>
+              <Typography variant="h6" fontWeight={600}>
+                {user.name}
+              </Typography>
               <Typography variant="body2" color="text.secondary">
                 {user.email}
               </Typography>
-            </Box>
+            </Stack>
           </Grid>
 
+          {/* Right Side – Actions */}
           <Grid item xs={12} md={8}>
             <Stack spacing={2}>
-              <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                Profile Page
+              <Typography variant="h5" fontWeight={700}>
+                Welcome back 👋
               </Typography>
-              <Divider />
+              <Divider sx={{ mb: 1 }} />
+
               <Button
-                variant="contained"
-                color="primary"
                 component={Link}
                 to="/orders"
+                variant="outlined"
+                color="primary"
                 startIcon={<ReceiptLongIcon />}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'start',
-                  width: '100%',
-                  px: 2
-                }}
+                fullWidth
+                sx={{ borderRadius: 2, py: 1.5, textTransform: 'none' }}
               >
                 My Orders
               </Button>
+
               <Button
-                variant="contained"
-                color="primary"
                 component={Link}
                 to="/fav"
+                variant="outlined"
+                color="error"
                 startIcon={<FavoriteIcon />}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'start',
-                  width: '100%',
-                  px: 2
-                }}
+                fullWidth
+                sx={{ borderRadius: 2, py: 1.5, textTransform: 'none' }}
               >
                 My Favorites
               </Button>
 
               <Button
-                variant="contained"
-                color="primary"
                 component={Link}
                 to="/usermanagement"
+                variant="outlined"
+                color="secondary"
                 startIcon={<PersonIcon />}
-                sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'start',
-                  width: '100%',
-                  px: 2
-                }}
+                fullWidth
+                sx={{ borderRadius: 2, py: 1.5, textTransform: 'none' }}
               >
-                User Management
+                Manage Profile
               </Button>
 
               <Button
@@ -122,11 +135,17 @@ const Profile = () => {
                 color="secondary"
                 startIcon={<LogoutIcon />}
                 onClick={handleLogout}
+                fullWidth
                 sx={{
-                  justifyContent: 'flex-start',
-                  textAlign: 'start',
-                  width: '100%',
-                  px: 2
+                  mt: 3,
+                  borderRadius: 2,
+                  py: 1.5,
+                  fontWeight: 600,
+                  backgroundColor: theme.palette.error.main,
+                  color: '#fff',
+                  '&:hover': {
+                    backgroundColor: theme.palette.error.dark,
+                  }
                 }}
               >
                 Log Out
