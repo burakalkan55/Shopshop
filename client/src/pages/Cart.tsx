@@ -29,7 +29,7 @@ const Cart: React.FC = () => {
   const [message, setMessage] = useState<string>("");
   const token = localStorage.getItem("token");
 
-  // Scroll sabitlenmesini etkinleştir
+  // Scroll sabitliği ve cart'ı çekme
   useEffect(() => {
     fetchCart();
     if ("scrollRestoration" in window.history) {
@@ -43,26 +43,22 @@ const Cart: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCartItems(response.data);
-    } catch (err) {
+    } catch {
       setMessage("Sepet alınamadı.");
     }
   };
 
   const updateCart = async (productId: number, amount: number) => {
-    const currentScroll = window.scrollY;
-
+    const scrollY = window.scrollY;
     try {
       await axios.post(
         "http://localhost:3000/cart",
         { productId, quantity: amount },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       fetchCart();
-
-      // Sayfa zıplamasını engelle
       setTimeout(() => {
-        window.scrollTo({ top: currentScroll, behavior: "auto" });
+        window.scrollTo({ top: scrollY });
       }, 10);
     } catch {
       setMessage("Sepet güncellenemedi.");
@@ -99,17 +95,19 @@ const Cart: React.FC = () => {
     0
   );
 
+  const sortedItems = [...cartItems].sort((a, b) => a.id - b.id);
+
   return (
     <Box sx={{ p: 4, maxWidth: 800, mx: "auto" }}>
       <Typography variant="h4" gutterBottom>
         🛒 Sepetim
       </Typography>
       <Divider sx={{ mb: 3 }} />
-      {cartItems.length === 0 ? (
+      {sortedItems.length === 0 ? (
         <Typography>Sepetiniz boş.</Typography>
       ) : (
         <>
-          {cartItems.map((item) => (
+          {sortedItems.map((item) => (
             <Box
               key={item.id}
               sx={{
