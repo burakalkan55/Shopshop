@@ -25,11 +25,13 @@ app.use(express.urlencoded({ extended: true }));
 import cartRoutes from './routes/cartRoutes';
 import orderRoutes from './routes/orderRoutes';
 import userRoutes from './routes/userRoutes';
+import favRoutes from './routes/favRoutes';
 import { protectedRoute } from './middleware/protectedRoute';
 
 // Route bağlama
 app.use('/cart', cartRoutes);
 app.use('/orders', orderRoutes);
+app.use('/favs', favRoutes);
 app.use('/', userRoutes);
 
 // Kayıt

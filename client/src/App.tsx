@@ -9,6 +9,7 @@ import Cart from './pages/Cart'
 import Orders from './pages/Orders'
 import UserManagement from './pages/UserManagament'
 import ProtectedRoute from './components/ProtectedRoute'
+import Fav from './pages/Fav'
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path ="/orders" element={<Orders />} />
         <Route path="/usermanagement" element={<UserManagement />} />
+        <Route path="/fav" element={<Fav />} />
         {/* Diğer sayfalar burada olacak */}
         {/* ProtectedRoute ile korunan sayfalar */}
         <Route 

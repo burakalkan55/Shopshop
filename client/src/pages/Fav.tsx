@@ -5,9 +5,8 @@ import {
   CardMedia,
   Typography,
   Button,
-  Snackbar,
-  Pagination,
   Box,
+  Snackbar,
 } from "@mui/material";
 import axios from "axios";
 import { useShopStore } from "../store/shopStore";
@@ -21,56 +20,68 @@ interface Product {
   thumbnail: string;
 }
 
-const Products: React.FC = () => {
+const Fav: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [message, setMessage] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const { favorites, toggleFavorite, setFavorites, addToCart } = useShopStore();
-  const itemsPerPage = 12;
+  const { favorites, toggleFavorite, addToCart } = useShopStore();
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchFavoriteProducts = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setMessage("Please login to view favorites");
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await axios.get("https://dummyjson.com/products?limit=100");
-        setProducts(response.data.products);
-        localStorage.setItem("cachedProducts", JSON.stringify(response.data.products));
+        // Fetch favorite product IDs
+        const favResponse = await axios.get("http://localhost:3000/favs", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        // Get cached products from localStorage
+        const cachedProducts = JSON.parse(localStorage.getItem("cachedProducts") || "[]");
+        
+        // Filter products to show only favorites
+        const favoriteProducts = cachedProducts.filter((product: Product) =>
+          favResponse.data.some((fav: any) => fav.productId === product.id)
+        );
+        
+        setProducts(favoriteProducts);
       } catch (err) {
-        setMessage("Failed to load products.");
+        console.error(err);
+        setMessage("Failed to load favorite products");
       } finally {
         setLoading(false);
       }
     };
-  
-    const fetchFavorites = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-  
-      try {
-        const res = await axios.get("http://localhost:3000/favs", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const favIds = res.data.map((fav: any) => fav.productId);
-        setFavorites(favIds);
-      } catch (err) {
-        console.error("Failed to fetch favorites:", err);
-      }
-    };
-  
-    fetchProducts();
-    fetchFavorites();
-  }, [setFavorites]);
-  
 
-  const paginatedProducts = products.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+    fetchFavoriteProducts();
+  }, []);
+
+  const handleRemoveFavorite = async (productId: number) => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      await axios.delete(`http://localhost:3000/favs/${productId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toggleFavorite(productId);
+      setProducts((prev) => prev.filter((product) => product.id !== productId));
+      setMessage("Removed from favorites");
+    } catch (err) {
+      console.error(err);
+      setMessage("Failed to remove from favorites");
+    }
+  };
 
   const handleAddToCart = async (productId: number) => {
     const token = localStorage.getItem("token");
     if (!token) {
-      setMessage("Please login first.");
+      setMessage("Please login first");
       return;
     }
 
@@ -80,46 +91,36 @@ const Products: React.FC = () => {
         { productId, quantity: 1 },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setMessage("Added to cart.");
+      addToCart(productId);
+      setMessage("Added to cart");
     } catch (err) {
       console.error(err);
-      setMessage("Failed to add to cart.");
+      setMessage("Failed to add to cart");
     }
   };
 
-  const handleToggleFavorite = async (productId: number) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setMessage("Please login to use favorites.");
-      return;
-    }
+  if (loading) return <Loading message="Loading favorites..." />;
 
-    try {
-      if (favorites.includes(productId)) {
-        await axios.delete(`http://localhost:3000/favs/${productId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        toggleFavorite(productId);
-        setMessage("Removed from favorites.");
-      } else {
-        await axios.post(
-          "http://localhost:3000/favs",
-          { productId },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        toggleFavorite(productId);
-        setMessage("Added to favorites.");
-      }
-    } catch (err) {
-      console.error(err);
-      setMessage("Favorite action failed.");
-    }
-  };
-
-  if (loading) return <Loading message="Fetching products..." />;
+  if (products.length === 0) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "70vh",
+        }}
+      >
+        <Typography variant="h5">No favorite products found</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ padding: 4 }}>
+      <Typography variant="h4" sx={{ mb: 4, textAlign: "center" }}>
+        My Favorites
+      </Typography>
       <Grid
         container
         spacing={4}
@@ -131,7 +132,7 @@ const Products: React.FC = () => {
           maxWidth: "1400px",
         }}
       >
-        {paginatedProducts.map((product) => (
+        {products.map((product) => (
           <Grid
             item
             xs={12}
@@ -192,7 +193,6 @@ const Products: React.FC = () => {
                     display: "-webkit-box",
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: "vertical",
-                    whiteSpace: "normal",
                   }}
                 >
                   {product.title}
@@ -217,20 +217,12 @@ const Products: React.FC = () => {
                 }}
               >
                 <Button
-                  variant={favorites.includes(product.id) ? "contained" : "outlined"}
+                  variant="contained"
                   color="error"
-                  sx={{ 
-                    minWidth: 40, 
-                    height: 40,
-                    backgroundColor: favorites.includes(product.id) ? "#f44336" : "transparent",
-                    color: favorites.includes(product.id) ? "white" : "#f44336",
-                    "&:hover": {
-                      backgroundColor: favorites.includes(product.id) ? "#d32f2f" : "rgba(244, 67, 54, 0.04)",
-                    }
-                  }}
-                  onClick={() => handleToggleFavorite(product.id)}
+                  sx={{ minWidth: 40, height: 40 }}
+                  onClick={() => handleRemoveFavorite(product.id)}
                 >
-                  {favorites.includes(product.id) ? "❤️" : "🤍"}
+                  ❤️
                 </Button>
                 <Button
                   variant="contained"
@@ -245,17 +237,6 @@ const Products: React.FC = () => {
         ))}
       </Grid>
 
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
-        <Pagination
-          count={Math.ceil(products.length / itemsPerPage)}
-          page={currentPage}
-          onChange={(e, page) => setCurrentPage(page)}
-          color="primary"
-          shape="rounded"
-          size="large"
-        />
-      </Box>
-
       <Snackbar
         open={!!message}
         autoHideDuration={3000}
@@ -266,4 +247,4 @@ const Products: React.FC = () => {
   );
 };
 
-export default Products;
+export default Fav;

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Box, Grid, Paper, Typography, Avatar, Button, Stack, Divider } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import PersonIcon from '@mui/icons-material/Person';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/api';
@@ -83,6 +84,21 @@ const Profile = () => {
                 }}
               >
                 My Orders
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                component={Link}
+                to="/fav"
+                startIcon={<FavoriteIcon />}
+                sx={{
+                  justifyContent: 'flex-start',
+                  textAlign: 'start',
+                  width: '100%',
+                  px: 2
+                }}
+              >
+                My Favorites
               </Button>
 
               <Button

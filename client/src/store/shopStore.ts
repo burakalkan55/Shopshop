@@ -9,6 +9,7 @@ interface ShopState {
   favorites: number[];
   cart: CartItem[];
   toggleFavorite: (productId: number) => void;
+  setFavorites: (favoriteIds: number[]) => void;
   addToCart: (productId: number) => void;
   removeFromCart: (productId: number) => void;
   clearCart: () => void;
@@ -17,6 +18,7 @@ interface ShopState {
 export const useShopStore = create<ShopState>((set) => ({
   favorites: [],
   cart: [],
+  setFavorites: (favoriteIds) => set({ favorites: favoriteIds }),
   toggleFavorite: (productId) =>
     set((state) => ({
       favorites: state.favorites.includes(productId)
