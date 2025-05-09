@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -9,6 +9,11 @@ import { PrismaClient } from '@prisma/client';
 dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
+
+// Define a custom request type that includes userId
+interface CustomRequest extends Request {
+  userId?: number;
+}
 
 // Statik klasör (yüklenen kullanıcı resimlerine erişim için)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -23,9 +28,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Route importları
-import cartRoutes from './routes/cartRoutes';
-import orderRoutes from './routes/orderRoutes';
-import userRoutes from './routes/userRoutes';
+import cartRoutes from './routes/CartRoutes'; // Ensure casing matches CartRoutes.ts
+import orderRoutes from './routes/OrderRoutes'; // Ensure casing matches OrderRoutes.ts
+import userRoutes from './routes/UserRoutes';   // Ensure casing matches UserRoutes.ts
 import favRoutes from './routes/favRoutes';
 import { protectedRoute } from './middleware/protectedRoute';
 
@@ -36,15 +41,19 @@ app.use('/favs', favRoutes);
 app.use('/', userRoutes);
 
 // Kayıt
-app.post('/auth/register', async (req: Request, res: Response) => {
+app.post('/auth/register', async (req: Request, res: Response, next: NextFunction) => {
   const { name, email, password } = req.body;
-  if (!name || !email || !password)
-    return res.status(400).json({ error: 'Tüm alanlar zorunlu' });
+  if (!name || !email || !password) {
+    res.status(400).json({ error: 'Tüm alanlar zorunlu' });
+    return;
+  }
 
   try {
     const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser)
-      return res.status(409).json({ error: 'Bu e-posta zaten kayıtlı' });
+    if (existingUser) {
+      res.status(409).json({ error: 'Bu e-posta zaten kayıtlı' });
+      return;
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
@@ -63,21 +72,24 @@ app.post('/auth/register', async (req: Request, res: Response) => {
 
     res.status(201).json({ message: 'Kayıt başarılı', token, user });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Sunucu hatası' });
+    next(err); // Pass errors to the next error-handling middleware
   }
 });
 
 // Giriş
-app.post('/auth/login', async (req: Request, res: Response) => {
+app.post('/auth/login', async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
-  if (!email || !password)
-    return res.status(400).json({ error: 'Gerekli alanlar boş' });
+  if (!email || !password) {
+    res.status(400).json({ error: 'Gerekli alanlar boş' });
+    return;
+  }
 
   try {
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user || !(await bcrypt.compare(password, user.password)))
-      return res.status(401).json({ error: 'Geçersiz bilgiler' });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      res.status(401).json({ error: 'Geçersiz bilgiler' });
+      return;
+    }
 
     const token = jwt.sign(
       { userId: user.id },
@@ -91,54 +103,28 @@ app.post('/auth/login', async (req: Request, res: Response) => {
 
     res.json({ message: 'Giriş başarılı', token, user });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Sunucu hatası' });
+    next(err);
   }
 });
 
 // Çıkış
-app.post('/auth/logout', async (req: Request, res: Response) => {
+app.post('/auth/logout', async (req: Request, res: Response, next: NextFunction) => {
   const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Yetkisiz' });
+  if (!token) {
+    res.status(401).json({ error: 'Yetkisiz' });
+    return;
+  }
 
   try {
     const decoded: any = jwt.verify(token, process.env.JWT_SECRET || 'supersecret');
-    await prisma.session.updateMany({
-      where: { userId: decoded.userId, status: 'online' },
-      data: { status: 'offline' }
-    });
+    await prisma.session.deleteMany({ where: { token } });
     res.json({ message: 'Çıkış başarılı' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Sunucu hatası' });
+    next(err);
   }
 });
 
-// Kullanıcı bilgisi
-app.get('/users/me', protectedRoute, async (req: Request, res: Response) => {
-  try {
-    const user = await prisma.user.findUnique({ where: { id: req.userId } });
-    if (!user) return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
-    res.json(user);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Sunucu hatası' });
-  }
-});
-
-// Ürünler
-app.get('/products', async (req: Request, res: Response) => {
-  try {
-    const products = await prisma.product.findMany();
-    res.json(products);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Ürünler alınamadı' });
-  }
-});
-
-// Sunucuyu başlat
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
