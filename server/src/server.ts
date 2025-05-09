@@ -15,8 +15,9 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Middleware'ler
 app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true
+  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
